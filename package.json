@@ -1,0 +1,13 @@
+{
+  "name": "gl-data-collector-server-statistics",
+  "version": "1.0.0",
+  "description": "statistics",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/case2912/gl-data-collector-server-statistics.git"
+  },
+  "author": "case2912",
+  "license": "ISC"
+}
