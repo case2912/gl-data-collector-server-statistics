@@ -45,13 +45,13 @@ const createTables = () => {
         })
     })
 }
-const query = (key) => {
+export const query = (key) => {
     return new Promise((resolve, reject) => {
         table.query(key).exec((err, data) => {
             if (err) {
                 reject(err)
             } else {
-                resolve(data)
+                resolve(data.Items.map(data => (data.attrs))[0])
             }
         })
     })
@@ -71,6 +71,15 @@ const updateDomain = (item) => {
     const t = _.uniq(item.map(data => (data.attrs.domain)))
     table.create({
         name: "domain",
+        index: t
+    }, (err) => {
+        err && console.log(err)
+    })
+}
+const updateBrowser = (item) => {
+    const t = _.uniq(item.map(data => (data.attrs.browser_name)))
+    table.create({
+        name: "browser_name",
         index: t
     }, (err) => {
         err && console.log(err)
@@ -99,6 +108,7 @@ export const sendData = () => {
 }
 scanAll().then(result => {
     updateDomain(result.Items)
+    updateBrowser(result.Items)
     test(result.Items)
     count(result.Items)
     min(result.Items)
