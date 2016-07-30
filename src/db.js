@@ -9,12 +9,14 @@ const table = vogels.define("webgl_result", {
     timestamps: true,
     schema: {
         name: Joi.string(),
-        data_type: Joi.string(),
         platform_name: Joi.string(),
         platform_version: Joi.string(),
         browser_name: Joi.string(),
         browser_version: Joi.string(),
-        data: Joi.array()
+        max: Joi.array(),
+        min: Joi.array(),
+        count: Joi.array(),
+        index: Joi.array()
     }
 })
 const statistics = vogels.define("webgl_statistic", {
@@ -69,13 +71,35 @@ const updateDomain = (item) => {
     const t = _.uniq(item.map(data => (data.attrs.domain)))
     table.create({
         name: "domain",
-        data_type: "domain",
-        data: t
+        index: t
     }, (err) => {
         err && console.log(err)
     })
 }
+const test = async(item) => {
+    table.create({
+        name: "all",
+        max: await max(item),
+        min: await min(item),
+        count: await count(item)
+    }, (err) => {
+        err && console.log(err)
+    })
+}
+export const sendData = () => {
+    return new Promise((resolve, reject) => {
+        table.scan().loadAll().exec((err, data) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(data.Items.map(data => (data.attrs)))
+            }
+        })
+    })
+}
 scanAll().then(result => {
+    updateDomain(result.Items)
+    test(result.Items)
     count(result.Items)
     min(result.Items)
     max(result.Items)
