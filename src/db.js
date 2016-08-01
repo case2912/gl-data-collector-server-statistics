@@ -62,21 +62,21 @@ export const scanAll = () => {
             if (err) {
                 reject(err)
             } else {
-                resolve(data.Items)
+                resolve(data.Items.map(data => (data.attrs)))
             }
         })
     })
 }
 const create = async(element) => {
     return new Promise((resolve, reject) => {
-        table.create(element, (err) => {
+        table.update(element, (err) => {
             err
                 ? reject(err)
                 : resolve()
         })
     })
 }
-export const sendData = () => {
+export const sendAllData = () => {
     return new Promise((resolve, reject) => {
         table.scan().loadAll().exec((err, data) => {
             if (err) {
@@ -89,18 +89,20 @@ export const sendData = () => {
 }
 const list = (item, name) => {
     return new Promise((resolve, reject) => {
-        resolve(_.uniq(item.map(data => (data.attrs[name]))))
+        resolve(_.uniq(item.map(data => (data[name]))))
     })
 }
 export const update = async() => {
     const result = await scanAll()
-    console.log(result);
     const browser_name = await list(result, "browser_name")
     const domain = await list(result, "domain")
-    create({name: "browser_name", index: domain})
+    const platform_name = await list(result, "platform_name")
+    create({name: "browser_name", index: browser_name})
     create({name: "domain", index: domain})
+    create({name: "platform_name", index: platform_name})
     create({name: "all", max: await max(result), min: await min(result), count: await count(result)})
-    browser_name.map(name => {
-
+    browser_name.map(async(name) => {
+        let t = _.filter(result, (data) => (data.browser_name === name))
+        create({name: name, max: await max(t), min: await min(t), count: await count(t)})
     })
 }

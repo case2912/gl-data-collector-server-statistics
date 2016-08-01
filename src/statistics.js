@@ -7,7 +7,7 @@ export const count = (item) => {
     t = _.map(t, (v) => (0))
     item.map(data => {
         _.each(extensions, (element, index) => {
-            data.attrs.extensions[element] && (t[index] += 1)
+            data.extensions[element] && (t[index] += 1)
         })
     })
     t = _.map(t, (v) => parseInt((v / item.length) * 100))
@@ -19,7 +19,7 @@ export const max = (item) => {
     t = _.map(t, (v) => (0))
     item.map(data => {
         _.each(parameters, (element, index) => {
-            t[index] = Math.max(t[index], data.attrs.parameters[element])
+            t[index] = Math.max(t[index], data.parameters[element])
         })
     })
     return t
@@ -30,7 +30,7 @@ export const min = (item) => {
     t = _.map(t, (v) => (9E12))
     item.map(data => {
         _.each(parameters, (element, index) => {
-            t[index] = Math.min(t[index], data.attrs.parameters[element])
+            t[index] = Math.min(t[index], data.parameters[element])
         })
     })
     t = _.map(t, (v) => {
