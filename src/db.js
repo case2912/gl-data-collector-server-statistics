@@ -33,7 +33,7 @@ const statistics = vogels.define("webgl_statistic", {
         domain: Joi.string()
     }
 })
-const createTables = () => {
+export const createTables = () => {
     return new Promise((resolve, reject) => {
         vogels.createTables(err => {
             if (err) {
@@ -56,43 +56,24 @@ export const query = (key) => {
         })
     })
 }
-const scanAll = () => {
+export const scanAll = () => {
     return new Promise((resolve, reject) => {
         statistics.scan().loadAll().exec((err, data) => {
             if (err) {
                 reject(err)
             } else {
-                resolve(data)
+                resolve(data.Items)
             }
         })
     })
 }
-const updateDomain = (item) => {
-    const t = _.uniq(item.map(data => (data.attrs.domain)))
-    table.create({
-        name: "domain",
-        index: t
-    }, (err) => {
-        err && console.log(err)
-    })
-}
-const updateBrowser = (item) => {
-    const t = _.uniq(item.map(data => (data.attrs.browser_name)))
-    table.create({
-        name: "browser_name",
-        index: t
-    }, (err) => {
-        err && console.log(err)
-    })
-}
-const test = async(item) => {
-    table.create({
-        name: "all",
-        max: await max(item),
-        min: await min(item),
-        count: await count(item)
-    }, (err) => {
-        err && console.log(err)
+const create = async(element) => {
+    return new Promise((resolve, reject) => {
+        table.create(element, (err) => {
+            err
+                ? reject(err)
+                : resolve()
+        })
     })
 }
 export const sendData = () => {
@@ -106,14 +87,20 @@ export const sendData = () => {
         })
     })
 }
-scanAll().then(result => {
-    updateDomain(result.Items)
-    updateBrowser(result.Items)
-    test(result.Items)
-    count(result.Items)
-    min(result.Items)
-    max(result.Items)
-    console.log(count(result.Items));
-    console.log(min(result.Items));
-    console.log(max(result.Items));
-})
+const list = (item, name) => {
+    return new Promise((resolve, reject) => {
+        resolve(_.uniq(item.map(data => (data.attrs[name]))))
+    })
+}
+export const update = async() => {
+    const result = await scanAll()
+    console.log(result);
+    const browser_name = await list(result, "browser_name")
+    const domain = await list(result, "domain")
+    create({name: "browser_name", index: domain})
+    create({name: "domain", index: domain})
+    create({name: "all", max: await max(result), min: await min(result), count: await count(result)})
+    browser_name.map(name => {
+
+    })
+}
