@@ -2,7 +2,11 @@ import "babel-polyfill"
 import vogels from "vogels"
 import Joi from "joi"
 import _ from "lodash"
-import {count, min, max} from "./statistics"
+import {
+    count,
+    min,
+    max
+} from "./statistics"
 vogels.AWS.config.loadFromPath("credentials.json")
 const table = vogels.define("webgl_result", {
     hashKey: "name",
@@ -71,8 +75,9 @@ const create = async(element) => {
     return new Promise((resolve, reject) => {
         table.update(element, (err) => {
             err
-                ? reject(err)
-                : resolve()
+                ?
+                reject(err) :
+                resolve()
         })
     })
 }
@@ -97,12 +102,63 @@ export const update = async() => {
     const browser_name = await list(result, "browser_name")
     const domain = await list(result, "domain")
     const platform_name = await list(result, "platform_name")
-    create({name: "browser_name", index: browser_name})
-    create({name: "domain", index: domain})
-    create({name: "platform_name", index: platform_name})
-    create({name: "all", max: await max(result), min: await min(result), count: await count(result)})
+    create({
+        name: "browser_name",
+        index: browser_name
+    })
+    create({
+        name: "domain",
+        index: domain
+    })
+    create({
+        name: "platform_name",
+        index: platform_name
+    })
+    create({
+        name: "all",
+        max: await max(result),
+        min: await min(result),
+        count: await count(result)
+    })
     browser_name.map(async(name) => {
-        let t = _.filter(result, (data) => (data.browser_name === name))
-        create({name: name, max: await max(t), min: await min(t), count: await count(t)})
+        let t = await _.filter(result, (data) => (data.browser_name === name))
+        let s = await list(t, "browser_version")
+        let u = await _.chain(s).map(v => versionReplace(v)).uniq().value()
+        u.map(async(version) => {
+            let v = await _.filter(t, (data) => (versionReplace(data.browser_version) === version))
+            create({
+                name: name + version,
+                max: await max(v),
+                min: await min(v),
+                count: await count(v)
+            })
+        })
+        create({
+            name: name,
+            max: await max(t),
+            min: await min(t),
+            count: await count(t)
+        })
+    })
+    _.map(platform_name, async(name) => {
+        let t = await _.filter(result, (data) => (data.platform_name === name))
+        let s = await list(t, "platform_version")
+        let u = await _.chain(s).map(v => versionReplace(v)).uniq().value()
+        u.map(async(version) => {
+            let v = await _.filter(t, (data) => (versionReplace(data.platform_version) === version))
+            create({
+                name: name + version,
+                max: await max(v),
+                min: await min(v),
+                count: await count(v)
+            })
+        })
+        create({
+            name: name,
+            max: await max(t),
+            min: await min(t),
+            count: await count(t)
+        })
     })
 }
+const versionReplace = (s) => (s.replace(/(?![0-9])(.*)/, ""))
