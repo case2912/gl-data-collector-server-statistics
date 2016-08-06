@@ -36,8 +36,13 @@ app.listen(process.env.PORT || 3000, () => {
 })
 app.use(bodyParser()).use(router.routes()).use(router.allowedMethods())
 const init = async() => {
-    //await createTables()
+    await createTables()
     await update()
     await console.log("table is updated!")
+    await console.log('cron start!');
+    await new CronJob('00 30 11 * * 1-5', async() => {
+        await update()
+        await console.log("table is updated!")
+    }, null, true, 'America/Los_Angeles')
 }
 init()
